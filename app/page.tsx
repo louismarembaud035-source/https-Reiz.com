@@ -1,7 +1,24 @@
 'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
+  const [fiches, setFiches] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchFiches() {
+      const { data, error } = await supabase.from('Fiches').select('*');
+      if (error) {
+        console.error('Erreur lors du chargement des fiches :', error);
+      } else {
+        setFiches(data || []);
+      }
+    }
+    fetchFiches();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans">
       <nav className="flex justify-between items-center px-8 py-6 border-b border-gray-200 bg-white">
@@ -40,6 +57,23 @@ export default function Home() {
             Partager une fiche
           </Link>
         </div>
+      </section>
+
+      <section className="max-w-4xl mx-auto px-6 pb-20">
+        <h3 className="text-2xl font-bold mb-6 text-gray-900">Dernières fiches partagées</h3>
+        {fiches.length === 0 ? (
+          <p className="text-gray-500 text-center py-8 bg-white border border-gray-200 rounded-2xl">Aucune fiche pour le moment. Rends-toi sur Supabase pour en ajouter une ou crée une page de publication !</p>
+        ) : (
+          <div className="grid gap-4">
+            {fiches.map((fiche) => (
+              <div key={fiche.id} className="p-6 border border-gray-200 rounded-2xl shadow-sm bg-white">
+                <h4 className="font-semibold text-lg text-gray-900 mb-1">{fiche.title}</h4>
+                <p className="text-xs font-medium text-[#2B4C7E] mb-3">{fiche.subject} • {fiche.level}</p>
+                <p className="text-gray-600 text-sm">{fiche.description}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );
