@@ -1,71 +1,87 @@
 'use client';
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
-export default function Feed() {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function FeedPage() {
+  const [fiches, setFiches] = useState<any[]>([]);
   const [search, setSearch] = useState('');
-  const [subject, setSubject] = useState('Tous');
+  const [selectedSubject, setSelectedSubject] = useState('');
 
-  const fiches = [
-    { id: 1, title: 'Résumé complet de la Seconde Guerre Mondiale', subject: 'Histoire', level: 'Lycée', author: 'Léa M.', likes: 24 },
-    { id: 2, title: 'Formulaire de thermodynamique et ondes', subject: 'Physique', level: 'Prépa', author: 'Thomas D.', likes: 42 },
-    { id: 3, title: 'Les notions clés de la Philosophie politique', subject: 'Philosophie', level: 'Terminale', author: 'Sarah K.', likes: 19 },
-  ];
+  useEffect(() => {
+    async function fetchFiches() {
+      const { data, error } = await supabase.from('Fiches').select('*');
+      if (error) {
+        console.error('Erreur chargement fiches :', error);
+      } else {
+        setFiches(data || []);
+      }
+    }
+    fetchFiches();
+  }, []);
 
-  const filteredFiches = fiches.filter(fiche => {
-    const matchesSearch = fiche.title.toLowerCase().includes(search.toLowerCase());
-    const matchesSubject = subject === 'Tous' || fiche.subject === subject;
+  const filteredFiches = fiches.filter((fiche) => {
+    const matchesSearch = fiche.title?.toLowerCase().includes(search.toLowerCase()) ||
+                          fiche.description?.toLowerCase().includes(search.toLowerCase());
+    const matchesSubject = selectedSubject ? fiche.subject === selectedSubject : true;
     return matchesSearch && matchesSubject;
   });
 
+  const subjects = Array.from(new Set(fiches.map((f) => f.subject).filter(Boolean)));
+
   return (
-    <div className="min-h-screen bg-[#F9FAFB] text-gray-900 p-6">
+    <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-extrabold text-[#2B4C7E]">Fil des fiches</h1>
-          <Link href="/" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            ← Retour à l'accueil
+          <h1 className="text-2xl font-bold text-[#2B4C7E]">Fil des fiches de révision</h1>
+          <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+            Accueil
           </Link>
         </div>
-        
+
+        {/* Barre de recherche et filtres */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <input
             type="text"
-            placeholder="Rechercher une fiche..."
+            placeholder="Rechercher une fiche (titre, mot-clé)..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
+            className="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none text-sm shadow-sm"
           />
           <select
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="px-4 py-2 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none text-sm shadow-sm text-gray-700"
           >
-            <option value="Tous">Toutes les matières</option>
-            <option value="Histoire">Histoire</option>
-            <option value="Physique">Physique</option>
-            <option value="Philosophie">Philosophie</option>
+            <option value="">Toutes les matières</option>
+            {subjects.map((subj) => (
+              <option key={subj} value={subj}>{subj}</option>
+            ))}
           </select>
         </div>
 
-        <div className="grid gap-4">
-          {filteredFiches.map((fiche) => (
-            <div key={fiche.id} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex justify-between items-center">
-              <div>
-                <div className="flex gap-2 mb-2">
-                  <span className="px-2.5 py-0.5 text-xs font-semibold text-[#2B4C7E] bg-blue-50 rounded-full">{fiche.subject}</span>
-                  <span className="px-2.5 py-0.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-full">{fiche.level}</span>
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900">{fiche.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">Partagé par {fiche.author}</p>
+        {/* Liste des fiches */}
+        {filteredFiches.length === 0 ? (
+          <p className="text-center text-gray-400 py-12 bg-white border border-gray-200 rounded-2xl">
+            Aucune fiche ne correspond à ta recherche.
+          </p>
+        ) : (
+          <div className="grid gap-4">
+            {filteredFiches.map((fiche) => (
+              <div key={fiche.id} className="p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                <h2 className="font-semibold text-lg text-gray-900 mb-1">{fiche.title}</h2>
+                <p className="text-xs font-medium text-[#2B4C7E] mb-3">{fiche.subject} • {fiche.level}</p>
+                <p className="text-gray-600 text-sm">{fiche.description}</p>
               </div>
-              <button className="px-4 py-2 text-sm font-medium text-[#2B4C7E] bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-                {fiche.likes} ❤️
-              </button>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
-    </div>
+    </main>
   );
 }
