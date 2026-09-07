@@ -37,6 +37,9 @@ export default function Home() {
           <Link href="/messages" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Chat
           </Link>
+          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Profil
+          </Link>
           <Link href="/auth" className="px-4 py-2 text-sm font-medium text-white bg-[#2B4C7E] rounded-lg hover:bg-[#20375E] transition">
             Connexion
           </Link>
