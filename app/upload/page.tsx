@@ -1,91 +1,115 @@
 'use client';
+
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 
-export default function UploadFiche() {
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function UploadPage() {
+  const router = useRouter();
   const [title, setTitle] = useState('');
-  const [subject, setSubject] = useState('Histoire');
-  const [level, setLevel] = useState('Lycée');
+  const [subject, setSubject] = useState('');
+  const [level, setLevel] = useState('');
   const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Fiche partagée avec succès !');
+    setLoading(true);
+    setErrorMsg('');
+
+    const { error } = await supabase.from('Fiches').insert([
+      { title, subject, level, description }
+    ]);
+
+    if (error) {
+      console.error('Erreur :', error);
+      setErrorMsg('Une erreur est survenue lors de l\'enregistrement.');
+      setLoading(false);
+    } else {
+      router.push('/');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB] p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-extrabold text-[#2B4C7E]">Partager une fiche</h1>
-          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            ← Retour au fil
+    <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans p-6">
+      <div className="max-w-xl mx-auto bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-[#2B4C7E]">Partager une fiche</h1>
+          <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900">
+            Retour
           </Link>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm space-y-6">
+        {errorMsg && (
+          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Titre de la fiche</label>
             <input
               type="text"
               required
-              placeholder="Ex: Résumé de thermodynamique"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
+              placeholder="Ex: Les dérivées en maths"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Matière</label>
-              <select
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2B4C7E] bg-white"
-              >
-                <option value="Histoire">Histoire</option>
-                <option value="Physique">Physique</option>
-                <option value="Philosophie">Philosophie</option>
-                <option value="Mathématiques">Mathématiques</option>
-                <option value="Français">Français</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2B4C7E] bg-white"
-              >
-                <option value="Lycée">Lycée</option>
-                <option value="Terminale">Terminale</option>
-                <option value="Prépa">Prépa</option>
-                <option value="Licence">Licence</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Matière</label>
+            <input
+              type="text"
+              required
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
+              placeholder="Ex: Mathématiques"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Niveau</label>
+            <input
+              type="text"
+              required
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
+              placeholder="Ex: Terminale"
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Description / Résumé</label>
             <textarea
-              rows={4}
               required
-              placeholder="Écris un court résumé ou le contenu de ta fiche..."
+              rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2B4C7E]"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
+              placeholder="Résumé rapide ou contenu de la fiche..."
             />
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 px-4 text-white bg-[#2B4C7E] rounded-xl font-medium hover:bg-[#20375E] transition"
+            disabled={loading}
+            className="w-full py-3 font-medium text-white bg-[#2B4C7E] rounded-xl shadow-sm hover:bg-[#20375E] transition disabled:opacity-50"
           >
-            Publier la fiche
+            {loading ? 'Publication en cours...' : 'Publier la fiche'}
           </button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }
