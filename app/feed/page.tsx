@@ -73,11 +73,13 @@ export default function FeedPage() {
         ) : (
           <div className="grid gap-4">
             {filteredFiches.map((fiche) => (
-              <div key={fiche.id} className="p-6 bg-white border border-gray-200 rounded-2xl shadow-sm">
-                <h2 className="font-semibold text-lg text-gray-900 mb-1">{fiche.title}</h2>
-                <p className="text-xs font-medium text-[#2B4C7E] mb-3">{fiche.subject} • {fiche.level}</p>
-                <p className="text-gray-600 text-sm">{fiche.description}</p>
-              </div>
+              <Link href={`/fiches/${fiche.id}`} key={fiche.id} className="block group">
+                <div className="p-6 bg-white border border-gray-200 rounded-2xl shadow-sm group-hover:border-[#2B4C7E] transition">
+                  <h2 className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-[#2B4C7E] transition">{fiche.title}</h2>
+                  <p className="text-xs font-medium text-[#2B4C7E] mb-3">{fiche.subject} • {fiche.level}</p>
+                  <p className="text-gray-600 text-sm line-clamp-2">{fiche.description}</p>
+                </div>
+              </Link>
             ))}
           </div>
         )}
