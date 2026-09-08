@@ -13,10 +13,26 @@ export default function FicheDetailPage() {
   const params = useParams();
   const [fiche, setFiche] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    if (!params?.id) return;
-    async function fetchFiche() {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        if (params?.id) {
+          const { data: favData } = await supabase
+            .from('Favorites')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .eq('fiche_id', params.id)
+            .single();
+          if (favData) setIsFavorite(true);
+        }
+      }
+
+      if (!params?.id) return;
       const { data, error } = await supabase
         .from('Fiches')
         .select('*')
@@ -30,8 +46,29 @@ export default function FicheDetailPage() {
       }
       setLoading(false);
     }
-    fetchFiche();
+    init();
   }, [params?.id]);
+
+  const toggleFavorite = async () => {
+    if (!user) {
+      alert('Connecte-toi pour ajouter cette fiche à tes favoris.');
+      return;
+    }
+
+    if (isFavorite) {
+      const { error } = await supabase
+        .from('Favorites')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('fiche_id', fiche.id);
+      if (!error) setIsFavorite(false);
+    } else {
+      const { error } = await supabase
+        .from('Favorites')
+        .insert([{ user_id: user.id, fiche_id: fiche.id }]);
+      if (!error) setIsFavorite(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -60,9 +97,21 @@ export default function FicheDetailPage() {
           <Link href="/feed" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition">
             ← Retour au fil
           </Link>
-          <span className="px-3 py-1 bg-blue-50 text-[#2B4C7E] text-xs font-semibold rounded-full">
-            {fiche.subject} • {fiche.level}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="px-3 py-1 bg-blue-50 text-[#2B4C7E] text-xs font-semibold rounded-full">
+              {fiche.subject} • {fiche.level}
+            </span>
+            <button
+              onClick={toggleFavorite}
+              className={`px-3 py-1 text-xs font-semibold rounded-full border transition ${
+                isFavorite 
+                  ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100' 
+                  : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+              }`}
+            >
+              {isFavorite ? '❤️ Favori' : '🤍 Ajouter aux favoris'}
+            </button>
+          </div>
         </div>
 
         <h1 className="text-3xl font-extrabold text-gray-900 mb-6">{fiche.title}</h1>
