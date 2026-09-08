@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 
@@ -11,6 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function FicheDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const [fiche, setFiche] = useState<any>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -36,7 +37,6 @@ export default function FicheDetailPage() {
 
       if (!params?.id) return;
 
-      // Charger la fiche
       const { data: ficheData, error: ficheError } = await supabase
         .from('Fiches')
         .select('*')
@@ -49,7 +49,6 @@ export default function FicheDetailPage() {
         setFiche(ficheData);
       }
 
-      // Charger les commentaires
       fetchComments();
       setLoading(false);
     }
@@ -90,6 +89,22 @@ export default function FicheDetailPage() {
     }
   };
 
+  const handleDeleteFiche = async () => {
+    if (!confirm('Es-tu sûr de vouloir supprimer cette fiche ?')) return;
+
+    const { error } = await supabase
+      .from('Fiches')
+      .delete()
+      .eq('id', fiche.id);
+
+    if (error) {
+      console.error('Erreur suppression :', error);
+      alert('Erreur lors de la suppression.');
+    } else {
+      router.push('/feed');
+    }
+  };
+
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -109,7 +124,6 @@ export default function FicheDetailPage() {
 
     if (error) {
       console.error('Erreur ajout commentaire :', error);
-      alert("Erreur lors de l'envoi du commentaire.");
     } else {
       setNewComment('');
       fetchComments();
@@ -135,6 +149,8 @@ export default function FicheDetailPage() {
       </div>
     );
   }
+
+  const isAuthor = user && user.id === fiche.user_id;
 
   return (
     <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans p-6 sm:p-12">
@@ -180,6 +196,23 @@ export default function FicheDetailPage() {
               >
                 📄 Télécharger / Ouvrir le fichier joint
               </a>
+            </div>
+          )}
+
+          {isAuthor && (
+            <div className="mt-6 pt-6 border-t border-gray-100 flex gap-3">
+              <Link
+                href={`/fiches/${fiche.id}/edit`}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-200 transition"
+              >
+                ✏️ Modifier
+              </Link>
+              <button
+                onClick={handleDeleteFiche}
+                className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition"
+              >
+                🗑️ Supprimer
+              </button>
             </div>
           )}
         </div>
