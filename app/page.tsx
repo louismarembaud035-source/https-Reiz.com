@@ -31,6 +31,9 @@ export default function Home() {
           <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Fil
           </Link>
+          <Link href="/groups" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Groupes
+          </Link>
           <Link href="/upload" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Publier
           </Link>
