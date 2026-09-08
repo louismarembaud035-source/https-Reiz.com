@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function Home() {
   const [fiches, setFiches] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     async function fetchFiches() {
@@ -21,6 +22,45 @@ export default function Home() {
       }
     }
     fetchFiches();
+
+    async function initNotifications() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      // Charger le nombre de notifications non lues initiales
+      const { count, error } = await supabase
+        .from('Notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', session.user.id)
+        .eq('is_read', false);
+
+      if (!error && count !== null) {
+        setUnreadCount(count);
+      }
+
+      // Écouter les nouvelles notifications en temps réel via Supabase Realtime
+      const channel = supabase
+        .channel('realtime-notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'Notifications',
+            filter: `user_id=eq.${session.user.id}`,
+          },
+          () => {
+            setUnreadCount((prev) => prev + 1);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+
+    initNotifications();
   }, []);
 
   return (
@@ -40,8 +80,13 @@ export default function Home() {
           <Link href="/messages" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Chat
           </Link>
-          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative">
             Profil
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-3 px-1.5 py-0.5 text-[10px] font-bold text-white bg-red-600 rounded-full">
+                {unreadCount}
+              </span>
+            )}
           </Link>
           <Link href="/auth" className="px-4 py-2 text-sm font-medium text-white bg-[#2B4C7E] rounded-lg hover:bg-[#20375E] transition">
             Connexion
