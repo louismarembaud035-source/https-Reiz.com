@@ -29,7 +29,6 @@ export default function Home() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      // Charger le nombre de notifications non lues initiales
       const { count, error } = await supabase
         .from('Notifications')
         .select('*', { count: 'exact', head: true })
@@ -40,7 +39,6 @@ export default function Home() {
         setUnreadCount(count);
       }
 
-      // Écouter les nouvelles notifications en temps réel via Supabase Realtime
       channel = supabase
         .channel(`realtime-notifications-${session.user.id}`)
         .on(
@@ -80,6 +78,9 @@ export default function Home() {
           </Link>
           <Link href="/requests" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Demandes
+          </Link>
+          <Link href="/exams" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Examens
           </Link>
           <Link href="/upload" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Publier
