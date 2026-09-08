@@ -53,7 +53,7 @@ export default function UploadPage() {
 
       if (uploadError) {
         console.error('Erreur upload fichier :', uploadError);
-        alert('Erreur lors du téléchargement du fichier.');
+        alert('Erreur fichier : ' + uploadError.message);
         setLoading(false);
         return;
       }
@@ -78,7 +78,7 @@ export default function UploadPage() {
 
     if (insertError) {
       console.error('Erreur insertion fiche :', insertError);
-      alert('Erreur lors de la publication de la fiche.');
+      alert('Erreur insertion : ' + insertError.message);
     } else {
       router.push('/feed');
     }
