@@ -78,6 +78,9 @@ export default function Home() {
           <Link href="/groups" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Groupes
           </Link>
+          <Link href="/requests" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Demandes
+          </Link>
           <Link href="/upload" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Publier
           </Link>
@@ -115,8 +118,8 @@ export default function Home() {
           <Link href="/feed" className="px-6 py-3 font-medium text-white bg-[#2B4C7E] rounded-xl shadow-sm hover:bg-[#20375E] transition">
             Explorer les fiches
           </Link>
-          <Link href="/upload" className="px-6 py-3 font-medium text-[#2B4C7E] bg-blue-50 rounded-xl hover:bg-blue-100 transition">
-            Partager une fiche
+          <Link href="/requests" className="px-6 py-3 font-medium text-[#2B4C7E] bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+            Voir les demandes
           </Link>
         </div>
       </section>
