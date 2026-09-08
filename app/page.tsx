@@ -23,6 +23,8 @@ export default function Home() {
     }
     fetchFiches();
 
+    let channel: any = null;
+
     async function initNotifications() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
@@ -39,8 +41,8 @@ export default function Home() {
       }
 
       // Écouter les nouvelles notifications en temps réel via Supabase Realtime
-      const channel = supabase
-        .channel('realtime-notifications')
+      channel = supabase
+        .channel(`realtime-notifications-${session.user.id}`)
         .on(
           'postgres_changes',
           {
@@ -54,13 +56,15 @@ export default function Home() {
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     }
 
     initNotifications();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, []);
 
   return (
@@ -80,13 +84,16 @@ export default function Home() {
           <Link href="/messages" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Chat
           </Link>
-          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative">
-            Profil
+          <Link href="/notifications" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative">
+            Notifications
             {unreadCount > 0 && (
               <span className="absolute -top-1 -right-3 px-1.5 py-0.5 text-[10px] font-bold text-white bg-red-600 rounded-full">
                 {unreadCount}
               </span>
             )}
+          </Link>
+          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Profil
           </Link>
           <Link href="/auth" className="px-4 py-2 text-sm font-medium text-white bg-[#2B4C7E] rounded-lg hover:bg-[#20375E] transition">
             Connexion
