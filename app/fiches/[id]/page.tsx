@@ -122,6 +122,19 @@ export default function FicheDetailPage() {
             {fiche.description}
           </div>
         </div>
+
+        {fiche.file_url && (
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <a
+              href={fiche.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 text-[#2B4C7E] rounded-xl text-sm font-semibold hover:bg-blue-100 transition"
+            >
+              📄 Télécharger / Ouvrir le fichier joint
+            </a>
+          </div>
+        )}
       </div>
     </main>
   );
