@@ -66,86 +66,99 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans">
-      <nav className="flex justify-between items-center px-8 py-6 border-b border-gray-200 bg-white">
-        <h1 className="text-xl font-bold tracking-tight text-[#2B4C7E]">Reiz</h1>
-        <div className="space-x-4 flex items-center">
-          <Link href="/feed" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Fil
-          </Link>
-          <Link href="/groups" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Groupes
-          </Link>
-          <Link href="/requests" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Demandes
-          </Link>
-          <Link href="/exams" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Examens
-          </Link>
-          <Link href="/planner" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Objectifs
-          </Link>
-          <Link href="/annuaire" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Annuaire
-          </Link>
-          <Link href="/tools" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Outils
-          </Link>
-          <Link href="/upload" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Publier
-          </Link>
-          <Link href="/messages" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Chat
-          </Link>
-          <Link href="/notifications" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative">
-            Notifications
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-3 px-1.5 py-0.5 text-[10px] font-bold text-white bg-red-600 rounded-full">
-                {unreadCount}
-              </span>
-            )}
-          </Link>
-          <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900">
-            Profil
-          </Link>
-          <Link href="/auth" className="px-4 py-2 text-sm font-medium text-white bg-[#2B4C7E] rounded-lg hover:bg-[#20375E] transition">
-            Connexion
-          </Link>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-[#FAFAFC] text-gray-900 font-sans selection:bg-blue-600 selection:text-white">
+      {/* Navigation Pro SaaS */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 h-16">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="text-lg font-extrabold tracking-tight text-gray-900 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+              Reiz
+            </Link>
+            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+              <Link href="/feed" className="hover:text-gray-900 transition">Fil</Link>
+              <Link href="/groups" className="hover:text-gray-900 transition">Groupes</Link>
+              <Link href="/exams" className="hover:text-gray-900 transition">Examens</Link>
+              <Link href="/planner" className="hover:text-gray-900 transition">Objectifs</Link>
+              <Link href="/annuaire" className="hover:text-gray-900 transition">Annuaire</Link>
+              <Link href="/tools" className="hover:text-gray-900 transition">Outils</Link>
+            </nav>
+          </div>
 
-      <section className="max-w-4xl mx-auto px-6 py-20 text-center">
-        <span className="inline-block px-3 py-1 mb-6 text-xs font-semibold text-[#2B4C7E] bg-blue-50 rounded-full">
-          Entraide & Fiches de révision
-        </span>
-        <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-6">
-          Partage tes fiches, révise mieux, <span className="text-[#2B4C7E]">ensemble</span>.
-        </h2>
-        <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-          Trouve les meilleures fiches de révision validées par la communauté, pose tes questions en direct et réussis tes examens sans galérer.
+          <div className="flex items-center gap-4">
+            <Link href="/notifications" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative p-2">
+              🔔
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 text-[10px] font-bold text-white bg-rose-500 rounded-full flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
+            <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:inline">
+              Profil
+            </Link>
+            <Link href="/auth" className="px-4 py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition shadow-sm">
+              Connexion
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section Épurée */}
+      <section className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
+          Plateforme collaborative de révision
+        </div>
+        <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-gray-900 mb-6 leading-[1.1]">
+          Révise mieux, <br />
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            réussis ensemble.
+          </span>
+        </h1>
+        <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto font-normal leading-relaxed">
+          Accède aux meilleures fiches de révision partagées par la communauté, planifie tes objectifs et collabore en temps réel.
         </p>
-        <div className="flex justify-center gap-4">
-          <Link href="/feed" className="px-6 py-3 font-medium text-white bg-[#2B4C7E] rounded-xl shadow-sm hover:bg-[#20375E] transition">
-            Explorer les fiches
+        <div className="flex flex-col sm:flex-row justify-center gap-3">
+          <Link href="/feed" className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/25">
+            Explorer les fiches →
           </Link>
-          <Link href="/requests" className="px-6 py-3 font-medium text-[#2B4C7E] bg-blue-50 rounded-xl hover:bg-blue-100 transition">
+          <Link href="/requests" className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-sm">
             Voir les demandes
           </Link>
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto px-6 pb-20">
-        <h3 className="text-2xl font-bold mb-6 text-gray-900">Dernières fiches partagées</h3>
+      {/* Grille des fiches récentes */}
+      <section className="max-w-5xl mx-auto px-6 pb-24">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-lg font-bold text-gray-900 tracking-tight">Dernières fiches partagées</h3>
+          <Link href="/feed" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+            Voir tout le fil →
+          </Link>
+        </div>
+
         {fiches.length === 0 ? (
-          <p className="text-gray-500 text-center py-8 bg-white border border-gray-200 rounded-2xl">Aucune fiche pour le moment.</p>
+          <div className="text-gray-400 text-center py-16 bg-white border border-gray-100 rounded-2xl shadow-sm text-sm">
+            Aucune fiche pour le moment.
+          </div>
         ) : (
-          <div className="grid gap-4">
-            {fiches.map((fiche) => (
-              <Link href={`/fiches/${fiche.id}`} key={fiche.id} className="block group">
-                <div className="p-6 border border-gray-200 rounded-2xl shadow-sm bg-white group-hover:border-[#2B4C7E] transition">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-1 group-hover:text-[#2B4C7E] transition">{fiche.title}</h4>
-                  <p className="text-xs font-medium text-[#2B4C7E] mb-3">{fiche.subject} • {fiche.level}</p>
-                  <p className="text-gray-600 text-sm line-clamp-2">{fiche.description}</p>
+          <div className="grid sm:grid-cols-2 gap-4">
+            {fiches.slice(0, 4).map((fiche) => (
+              <Link href={`/fiches/${fiche.id}`} key={fiche.id} className="group block">
+                <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="px-2.5 py-1 bg-gray-50 text-gray-600 text-xs font-medium rounded-md border border-gray-100">
+                      {fiche.subject}
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">{fiche.level}</span>
+                  </div>
+                  <h4 className="font-semibold text-base text-gray-900 group-hover:text-blue-600 transition">
+                    {fiche.title}
+                  </h4>
+                  <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">
+                    {fiche.description}
+                  </p>
                 </div>
               </Link>
             ))}
