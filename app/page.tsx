@@ -85,6 +85,9 @@ export default function Home() {
           <Link href="/annuaire" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Annuaire
           </Link>
+          <Link href="/tools" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Outils
+          </Link>
           <Link href="/upload" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Publier
           </Link>
