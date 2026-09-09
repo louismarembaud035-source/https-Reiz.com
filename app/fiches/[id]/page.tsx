@@ -23,6 +23,10 @@ export default function FicheDetailPage() {
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // États pour la notation
+  const [ratings, setRatings] = useState<any[]>([]);
+  const [userRating, setUserRating] = useState<number>(0);
+
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -30,8 +34,10 @@ export default function FicheDetailPage() {
   useEffect(() => {
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
+      let currentUserId = undefined;
       if (session) {
         setUser(session.user);
+        currentUserId = session.user.id;
         if (params?.id) {
           const { data: favData } = await supabase
             .from('Favorites')
@@ -60,6 +66,7 @@ export default function FicheDetailPage() {
 
       fetchComments();
       fetchFlashcards();
+      fetchRatings(params.id as string, currentUserId);
       setLoading(false);
     }
     init();
@@ -84,6 +91,48 @@ export default function FicheDetailPage() {
       .order('created_at', { ascending: true });
     if (data) setFlashcards(data);
   }
+
+  async function fetchRatings(ficheId: string, currentUserId?: string) {
+    const { data, error } = await supabase
+      .from('FicheRatings')
+      .select('*')
+      .eq('fiche_id', ficheId);
+
+    if (!error && data) {
+      setRatings(data);
+      if (currentUserId) {
+        const existing = data.find((r) => r.user_id === currentUserId);
+        if (existing) setUserRating(existing.rating);
+      }
+    }
+  }
+
+  const handleRate = async (value: number) => {
+    if (!user) {
+      alert('Connecte-toi pour noter cette fiche.');
+      router.push('/auth');
+      return;
+    }
+
+    const { error } = await supabase
+      .from('FicheRatings')
+      .upsert(
+        { fiche_id: fiche.id, user_id: user.id, rating: value },
+        { onConflict: 'fiche_id,user_id' }
+      );
+
+    if (error) {
+      console.error('Erreur lors de la notation :', error);
+      alert("Erreur lors de l'enregistrement de ta note.");
+    } else {
+      setUserRating(value);
+      fetchRatings(fiche.id, user.id);
+    }
+  };
+
+  const averageRating = ratings.length > 0
+    ? (ratings.reduce((acc, curr) => acc + curr.rating, 0) / ratings.length).toFixed(1)
+    : 'Aucune note';
 
   const toggleFavorite = async () => {
     if (!user) {
@@ -189,8 +238,8 @@ export default function FicheDetailPage() {
     <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans p-6 sm:p-12">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Détails de la fiche */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-          <div className="flex justify-between items-center mb-6">
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8 space-y-6">
+          <div className="flex justify-between items-center">
             <Link href="/feed" className="text-sm font-medium text-gray-500 hover:text-gray-900 transition">
               ← Retour au fil
             </Link>
@@ -211,8 +260,33 @@ export default function FicheDetailPage() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-6">{fiche.title}</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900">{fiche.title}</h1>
           
+          {/* Bloc de notation par étoiles */}
+          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div>
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Note globale</span>
+              <span className="text-lg font-bold text-[#2B4C7E]">
+                {averageRating} {ratings.length > 0 && <span className="text-xs font-normal text-gray-500">({ratings.length} avis)</span>}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-semibold text-gray-500 mr-2">Ta note :</span>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRate(star)}
+                  className={`text-lg transition ${
+                    star <= userRating ? 'text-amber-400 scale-110' : 'text-gray-300 hover:text-amber-300'
+                  }`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Contenu / Résumé</h3>
             <div className="text-gray-700 whitespace-pre-wrap leading-relaxed text-sm bg-gray-50 p-6 rounded-xl border border-gray-100">
@@ -221,7 +295,7 @@ export default function FicheDetailPage() {
           </div>
 
           {fiche.file_url && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="pt-4 border-t border-gray-100">
               <a
                 href={fiche.file_url}
                 target="_blank"
@@ -234,7 +308,7 @@ export default function FicheDetailPage() {
           )}
 
           {isAuthor && (
-            <div className="mt-6 pt-6 border-t border-gray-100 flex gap-3">
+            <div className="pt-4 border-t border-gray-100 flex gap-3">
               <Link
                 href={`/fiches/${fiche.id}/edit`}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-200 transition"
