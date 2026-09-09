@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [favorites, setFavorites] = useState<any[]>([]);
   const [myFiches, setMyFiches] = useState<any[]>([]);
+  const [speciality, setSpeciality] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,10 +49,38 @@ export default function ProfilePage() {
         .order('created_at', { ascending: false });
 
       setMyFiches(userFiches || []);
+
+      // 3. Récupérer le profil (spécialité)
+      const { data: profileData } = await supabase
+        .from('Profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileData) {
+        setSpeciality(profileData.speciality || '');
+      }
+
       setLoading(false);
     }
     getUserData();
   }, [router]);
+
+  const handleSaveSpeciality = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('Profiles')
+      .upsert({ id: user.id, email: user.email, speciality });
+
+    if (error) {
+      console.error('Erreur mise à jour spécialité :', error);
+      alert('Erreur lors de la mise à jour de la spécialité.');
+    } else {
+      alert('✨ Spécialité mise à jour avec succès !');
+    }
+  };
 
   const handleDeleteFiche = async (ficheId: string) => {
     if (!confirm('Es-tu sûr de vouloir supprimer cette fiche ?')) return;
@@ -99,6 +128,25 @@ export default function ProfilePage() {
               <p className="text-xs font-semibold text-[#2B4C7E] uppercase tracking-wider mb-1">E-mail connecté</p>
               <p className="text-gray-800 font-medium text-sm">{user?.email}</p>
             </div>
+
+            {/* Formulaire Spécialité / Filière */}
+            <form onSubmit={handleSaveSpeciality} className="space-y-3 pt-4 border-t border-gray-100">
+              <h3 className="font-semibold text-gray-800 text-sm">Ma Spécialité / Filière</h3>
+              <p className="text-xs text-gray-500">Affiche ta promotion pour que les autres membres te retrouvent dans l'annuaire.</p>
+              <input
+                type="text"
+                placeholder="ex: L2 Mathématiques ou Master 1 Droit"
+                value={speciality}
+                onChange={(e) => setSpeciality(e.target.value)}
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#2B4C7E] text-white rounded-xl text-xs font-semibold hover:bg-[#20375E] transition shadow-sm"
+              >
+                Enregistrer ma spécialité
+              </button>
+            </form>
 
             <div className="border-t border-gray-100 pt-6">
               <h3 className="font-semibold text-gray-800 mb-2 text-sm">Paramètres du compte</h3>
