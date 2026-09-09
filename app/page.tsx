@@ -82,6 +82,9 @@ export default function Home() {
           <Link href="/exams" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Examens
           </Link>
+          <Link href="/planner" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Objectifs
+          </Link>
           <Link href="/annuaire" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Annuaire
           </Link>
