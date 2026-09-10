@@ -19,14 +19,12 @@ export default function GamificationSection() {
     async function fetchLeaderboardData() {
       const { data: fiches, error } = await supabase.from('Fiches').select('*');
       if (!error && fiches) {
-        // Regrouper les fiches par auteur pour calculer les points (1 fiche = 100 points)
         const counts: { [key: string]: number } = {};
         fiches.forEach((fiche) => {
           const author = fiche.author || fiche.user_email || 'Étudiant anonyme';
           counts[author] = (counts[author] || 0) + 100;
         });
 
-        // Transformer en tableau trié
         const sorted = Object.keys(counts)
           .map((name) => ({ name, points: counts[name] }))
           .sort((a, b) => b.points - a.points);
@@ -55,14 +53,14 @@ export default function GamificationSection() {
       
       {/* 1. Widget Streak Interactif */}
       <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between border border-indigo-500/20">
-        <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+        <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
         
         <div className="space-y-4 relative z-10">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-orange-400 bg-orange-500/10 px-3 py-1 rounded-full border border-orange-500/25">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-white bg-white/10 px-3 py-1 rounded-full border border-white/20">
               Série en cours
             </span>
-            <div className="flex items-center gap-1.5 text-orange-400 font-black text-lg">
+            <div className="flex items-center gap-1.5 text-white font-black text-lg">
               🔥 {streak} jour{streak > 1 ? 's' : ''}
             </div>
           </div>
@@ -79,7 +77,7 @@ export default function GamificationSection() {
             className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md ${
               checkedIn 
                 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default' 
-                : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-95'
+                : 'bg-white text-slate-900 hover:bg-slate-100'
             }`}
           >
             {checkedIn ? (
@@ -88,7 +86,7 @@ export default function GamificationSection() {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4" /> Valider ma révision du jour
+                <Sparkles className="w-4 h-4 text-indigo-600" /> Valider ma révision du jour
               </>
             )}
           </button>
