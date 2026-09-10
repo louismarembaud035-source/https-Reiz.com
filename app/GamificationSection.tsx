@@ -14,7 +14,6 @@ export default function GamificationSection() {
   const [selectedBadge, setSelectedBadge] = useState<any>(null);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
-  // Charger le classement réel basé sur les fiches Supabase
   useEffect(() => {
     async function fetchLeaderboardData() {
       const { data: fiches, error } = await supabase.from('Fiches').select('*');
@@ -51,42 +50,41 @@ export default function GamificationSection() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8 relative">
       
-      {/* 1. Widget Streak Interactif */}
-      <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between border border-indigo-500/20">
-        <div className="absolute -right-6 -bottom-6 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      {/* 1. Widget Streak (Fond blanc, texte noir) */}
+      <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
         
         <div className="space-y-4 relative z-10">
           <div className="flex justify-between items-center">
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-white bg-white/10 px-3 py-1 rounded-full border border-white/20">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-orange-600 bg-orange-50 px-3 py-1 rounded-full border border-orange-200/60">
               Série en cours
             </span>
-            <div className="flex items-center gap-1.5 text-white font-black text-lg">
+            <div className="flex items-center gap-1.5 text-slate-900 font-black text-lg">
               🔥 {streak} jour{streak > 1 ? 's' : ''}
             </div>
           </div>
           <div>
-            <h4 className="font-extrabold text-xl tracking-tight">Objectif de révision</h4>
-            <p className="text-slate-400 text-xs mt-1">Valide ta présence quotidienne pour faire grandir ta flamme et débloquer des avantages.</p>
+            <h4 className="font-extrabold text-xl tracking-tight text-slate-900">Objectif de révision</h4>
+            <p className="text-slate-500 text-xs mt-1">Valide ta présence quotidienne pour faire grandir ta flamme et débloquer des avantages.</p>
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-white/10 relative z-10">
+        <div className="mt-6 pt-4 border-t border-slate-100 relative z-10">
           <button 
             onClick={handleCheckIn}
             disabled={checkedIn}
-            className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md ${
+            className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm ${
               checkedIn 
-                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 cursor-default' 
-                : 'bg-white text-slate-900 hover:bg-slate-100'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default' 
+                : 'bg-slate-900 text-white hover:bg-slate-800'
             }`}
           >
             {checkedIn ? (
               <>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Objectif validé aujourd'hui !
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Objectif validé aujourd'hui !
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-indigo-600" /> Valider ma révision du jour
+                <Sparkles className="w-4 h-4 text-indigo-400" /> Valider ma révision du jour
               </>
             )}
           </button>
