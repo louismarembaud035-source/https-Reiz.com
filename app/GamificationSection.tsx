@@ -42,12 +42,12 @@ export default function GamificationSection() {
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          {/* Badge Débloqué 1 (Légendaire / Or) */}
+          {/* Badge Débloqué 1 */}
           <div className="group relative bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl p-3 text-center flex flex-col items-center justify-center gap-1.5 shadow-sm hover:scale-105 transition">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-md shadow-orange-500/30 text-lg">
               👑
             </div>
-            <span className="text-[10px] font-bold text-slate-800 truncate w-full">Top 1 Promo</span>
+            <span className="text-[10px] font-bold text-slate-800 leading-tight">Top 1 Promo</span>
           </div>
 
           {/* Badge Débloqué 2 */}
@@ -55,22 +55,22 @@ export default function GamificationSection() {
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/30 text-lg">
               ⚡
             </div>
-            <span className="text-[10px] font-bold text-slate-800 truncate w-full">Streak x10</span>
+            <span className="text-[10px] font-bold text-slate-800 leading-tight">Streak x10</span>
           </div>
 
-          {/* Badge Verrouillé (Teasing addictif) */}
+          {/* Badge Verrouillé */}
           <div className="relative bg-slate-100/80 border border-slate-200 rounded-2xl p-3 text-center flex flex-col items-center justify-center gap-1.5 opacity-60">
             <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center text-slate-500 text-base">
               🔒
             </div>
-            <span className="text-[10px] font-semibold text-slate-500 truncate w-full">Nuit Blanche</span>
+            <span className="text-[10px] font-semibold text-slate-500 leading-tight">Nuit Blanche</span>
           </div>
         </div>
 
         <p className="text-[11px] text-slate-400 text-center">Survole un badge verrouillé pour voir les conditions.</p>
       </div>
 
-      {/* Classement de la Promotion (Comparaison Live) */}
+      {/* Classement de la Promotion */}
       <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-3">
         <div className="flex justify-between items-center">
           <h3 className="font-bold text-sm text-slate-900 tracking-tight">Classement de la promo</h3>
