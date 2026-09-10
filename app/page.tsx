@@ -18,6 +18,7 @@ import {
   ArrowRight,
   Flame
 } from 'lucide-react';
+import GamificationSection from '@/components/GamificationSection';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -209,10 +210,13 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Gamification Section (Streaks, Badges & Leaderboard) */}
+          <GamificationSection />
+
           {/* Main Feed Section */}
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             <div className="flex justify-between items-center px-1">
-              <h3 className="font-bold text-base text-slate-900 tracking-tight">Flux récent des fiches</h3>
+              <h3 className="font-bold base text-slate-900 tracking-tight">Flux récent des fiches</h3>
               <Link href="/feed" className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 group">
                 Tout voir <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition" />
               </Link>
