@@ -19,6 +19,7 @@ import {
   Flame
 } from 'lucide-react';
 import GamificationSection from './GamificationSection';
+import PresenceTicker from './PresenceTicker';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -212,6 +213,9 @@ export default function Home() {
 
           {/* Gamification Section (Streaks, Badges & Leaderboard) */}
           <GamificationSection />
+
+          {/* Presence Ticker (Live Promo Feed) */}
+          <PresenceTicker />
 
           {/* Main Feed Section */}
           <div className="space-y-4 pt-2">
