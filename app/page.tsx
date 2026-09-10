@@ -11,160 +11,193 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function Home() {
   const [fiches, setFiches] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    async function fetchFiches() {
-      const { data, error } = await supabase.from('Fiches').select('*');
-      if (error) {
-        console.error('Erreur lors du chargement des fiches :', error);
-      } else {
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+      }
+
+      const { data, error } = await supabase.from('Fiches').select('*').order('created_at', { ascending: false });
+      if (!error) {
         setFiches(data || []);
       }
-    }
-    fetchFiches();
 
-    let channel: any = null;
+      if (session) {
+        const { count } = await supabase
+          .from('Notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', session.user.id)
+          .eq('is_read', false);
 
-    async function initNotifications() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-
-      const { count, error } = await supabase
-        .from('Notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', session.user.id)
-        .eq('is_read', false);
-
-      if (!error && count !== null) {
-        setUnreadCount(count);
+        if (count !== null) setUnreadCount(count);
       }
-
-      channel = supabase
-        .channel(`realtime-notifications-${session.user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'Notifications',
-            filter: `user_id=eq.${session.user.id}`,
-          },
-          () => {
-            setUnreadCount((prev) => prev + 1);
-          }
-        )
-        .subscribe();
     }
-
-    initNotifications();
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
+    init();
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#FAFAFC] text-gray-900 font-sans selection:bg-blue-600 selection:text-white">
-      {/* Navigation Pro SaaS */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-gray-100">
-        <div className="max-w-7xl mx-auto flex justify-between items-center px-6 h-16">
-          <div className="flex items-center gap-8">
-            <Link href="/" className="text-lg font-extrabold tracking-tight text-gray-900 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-              Reiz
-            </Link>
-            <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-              <Link href="/feed" className="hover:text-gray-900 transition">Fil</Link>
-              <Link href="/groups" className="hover:text-gray-900 transition">Groupes</Link>
-              <Link href="/exams" className="hover:text-gray-900 transition">Examens</Link>
-              <Link href="/planner" className="hover:text-gray-900 transition">Objectifs</Link>
-              <Link href="/annuaire" className="hover:text-gray-900 transition">Annuaire</Link>
-              <Link href="/tools" className="hover:text-gray-900 transition">Outils</Link>
-            </nav>
+    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 font-sans flex flex-col md:flex-row">
+      
+      {/* Sidebar App (Desktop) */}
+      <aside className="w-full md:w-64 bg-white border-r border-slate-200/80 p-6 flex flex-col justify-between hidden md:flex shrink-0">
+        <div className="space-y-8">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/20">
+              R
+            </div>
+            <span className="font-extrabold tracking-tight text-slate-900 text-lg">Reiz Workspace</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/notifications" className="text-sm font-medium text-gray-600 hover:text-gray-900 relative p-2">
-              🔔
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 text-[10px] font-bold text-white bg-rose-500 rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
+          <nav className="space-y-1">
+            <span className="px-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Navigation</span>
+            <Link href="/feed" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              📚 Fil d'actualité
             </Link>
-            <Link href="/profil" className="text-sm font-medium text-gray-600 hover:text-gray-900 hidden sm:inline">
-              Profil
+            <Link href="/planner" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              🎯 Study Planner
             </Link>
-            <Link href="/auth" className="px-4 py-2 text-xs font-semibold text-white bg-gray-900 rounded-lg hover:bg-gray-800 transition shadow-sm">
-              Connexion
+            <Link href="/exams" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              ⏳ Examens & Décompte
             </Link>
+            <Link href="/groups" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              👥 Groupes d'étude
+            </Link>
+            <Link href="/annuaire" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              🎓 Annuaire filières
+            </Link>
+            <Link href="/tools" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition">
+              🛠️ Boîte à outils
+            </Link>
+          </nav>
+        </div>
+
+        <div className="pt-6 border-t border-slate-100 space-y-3">
+          <Link href="/upload" className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-sm shadow-blue-500/20">
+            + Nouvelle fiche
+          </Link>
+          {user ? (
+            <Link href="/profil" className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition truncate">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span className="truncate">{user.email}</span>
+            </Link>
+          ) : (
+            <Link href="/auth" className="block text-center text-xs font-semibold text-blue-600 py-2 hover:underline">
+              Se connecter
+            </Link>
+          )}
+        </div>
+      </aside>
+
+      {/* Main Content Dashboard */}
+      <main className="flex-1 flex flex-col min-w-0">
+        
+        {/* Mobile Header */}
+        <header className="md:hidden bg-white border-b border-slate-200/80 px-6 py-4 flex justify-between items-center sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-xs">R</div>
+            <span className="font-extrabold text-slate-900">Reiz</span>
           </div>
-        </div>
-      </header>
-
-      {/* Hero Section Épurée */}
-      <section className="max-w-4xl mx-auto px-6 pt-24 pb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 mb-8 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-100 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse"></span>
-          Plateforme collaborative de révision
-        </div>
-        <h1 className="text-5xl sm:text-6xl font-black tracking-tight text-gray-900 mb-6 leading-[1.1]">
-          Révise mieux, <br />
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            réussis ensemble.
-          </span>
-        </h1>
-        <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto font-normal leading-relaxed">
-          Accède aux meilleures fiches de révision partagées par la communauté, planifie tes objectifs et collabore en temps réel.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-3">
-          <Link href="/feed" className="px-6 py-3 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-600/25">
-            Explorer les fiches →
-          </Link>
-          <Link href="/requests" className="px-6 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition shadow-sm">
-            Voir les demandes
-          </Link>
-        </div>
-      </section>
-
-      {/* Grille des fiches récentes */}
-      <section className="max-w-5xl mx-auto px-6 pb-24">
-        <div className="flex justify-between items-center mb-8">
-          <h3 className="text-lg font-bold text-gray-900 tracking-tight">Dernières fiches partagées</h3>
-          <Link href="/feed" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
-            Voir tout le fil →
-          </Link>
-        </div>
-
-        {fiches.length === 0 ? (
-          <div className="text-gray-400 text-center py-16 bg-white border border-gray-100 rounded-2xl shadow-sm text-sm">
-            Aucune fiche pour le moment.
+          <div className="flex items-center gap-3">
+            <Link href="/upload" className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold">
+              + Fiche
+            </Link>
+            <Link href="/profil" className="text-xs font-semibold text-slate-600">Profil</Link>
           </div>
-        ) : (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {fiches.slice(0, 4).map((fiche) => (
-              <Link href={`/fiches/${fiche.id}`} key={fiche.id} className="group block">
-                <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:border-gray-200 transition space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="px-2.5 py-1 bg-gray-50 text-gray-600 text-xs font-medium rounded-md border border-gray-100">
-                      {fiche.subject}
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium">{fiche.level}</span>
-                  </div>
-                  <h4 className="font-semibold text-base text-gray-900 group-hover:text-blue-600 transition">
-                    {fiche.title}
-                  </h4>
-                  <p className="text-gray-500 text-xs line-clamp-2 leading-relaxed">
-                    {fiche.description}
-                  </p>
-                </div>
+        </header>
+
+        {/* Dashboard Workspace */}
+        <div className="p-6 sm:p-10 max-w-6xl mx-auto w-full space-y-8">
+          
+          {/* Top Greeting Banner */}
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">
+                Espace étudiant actif
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-2">
+                Tableau de bord 🚀
+              </h1>
+              <p className="text-sm text-slate-500 mt-1">
+                Retrouvez instantanément les derniers partages de notes et accédez à vos outils de révision.
+              </p>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <Link href="/feed" className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition text-center shadow-sm">
+                Explorer le fil
               </Link>
-            ))}
+              <Link href="/planner" className="flex-1 sm:flex-none px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition text-center shadow-sm">
+                Voir mon planner
+              </Link>
+            </div>
           </div>
-        )}
-      </section>
-    </main>
+
+          {/* Quick Metrics Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Fiches en ligne</span>
+              <span className="text-2xl font-black text-slate-900 mt-1 block">{fiches.length}</span>
+            </div>
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Notifications</span>
+              <span className="text-2xl font-black text-blue-600 mt-1 block">{unreadCount}</span>
+            </div>
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Mode actif</span>
+              <span className="text-sm font-bold text-emerald-600 mt-2 block flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                Collaboration live
+              </span>
+            </div>
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Statut session</span>
+              <span className="text-sm font-bold text-slate-700 mt-2 block">
+                {user ? 'Connecté' : 'Invité'}
+              </span>
+            </div>
+          </div>
+
+          {/* Main Feed Section */}
+          <div className="space-y-4">
+            <div className="flex justify-between items-center px-1">
+              <h3 className="font-bold text-base text-slate-900 tracking-tight">Flux récent des fiches</h3>
+              <Link href="/feed" className="text-xs font-bold text-blue-600 hover:text-blue-700">
+                Tout voir →
+              </Link>
+            </div>
+
+            {fiches.length === 0 ? (
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-12 text-center text-slate-400 text-sm shadow-sm">
+                Aucune fiche disponible pour le moment.
+              </div>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {fiches.map((fiche) => (
+                  <Link href={`/fiches/${fiche.id}`} key={fiche.id} className="group block">
+                    <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:border-blue-500 hover:shadow-md transition space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-md">
+                          {fiche.subject}
+                        </span>
+                        <span className="text-[11px] font-semibold text-slate-400">{fiche.level}</span>
+                      </div>
+                      <h4 className="font-bold text-sm text-slate-900 group-hover:text-blue-600 transition">
+                        {fiche.title}
+                      </h4>
+                      <p className="text-slate-500 text-xs line-clamp-2 leading-relaxed">
+                        {fiche.description}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </main>
+    </div>
   );
 }
