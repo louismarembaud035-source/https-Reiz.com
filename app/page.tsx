@@ -16,7 +16,8 @@ import {
   FileText, 
   Sparkles,
   ArrowRight,
-  Flame
+  Flame,
+  MessageSquare
 } from 'lucide-react';
 import GamificationSection from './GamificationSection';
 import PresenceTicker from './PresenceTicker';
@@ -58,7 +59,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#FAFAFC] text-slate-900 font-sans flex flex-col md:flex-row relative overflow-hidden">
       
-      {/* Background Ambient Glow (Social/Organic vibe) */}
+      {/* Background Ambient Glow */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
       <div className="absolute top-1/3 right-10 w-80 h-80 bg-indigo-400/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
 
@@ -78,6 +79,11 @@ export default function Home() {
             <Link href="/feed" className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-blue-50/60 hover:text-blue-600 transition group">
               <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
               Fil d'actualité
+            </Link>
+
+            <Link href="/messages" className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-blue-50/60 hover:text-blue-600 transition group">
+              <MessageSquare className="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition" />
+              Messagerie
             </Link>
 
             <Link href="/planner" className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-semibold text-slate-600 hover:bg-blue-50/60 hover:text-blue-600 transition group">
@@ -137,6 +143,7 @@ export default function Home() {
             <span className="font-extrabold text-slate-900 tracking-tight">Reiz</span>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/messages" className="text-xs font-semibold text-blue-600">Messages</Link>
             <Link href="/upload" className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm">
               <Plus className="w-3.5 h-3.5" /> Fiche
             </Link>
@@ -162,8 +169,8 @@ export default function Home() {
               </p>
             </div>
             <div className="relative z-10 flex items-center gap-3 w-full sm:w-auto shrink-0">
-              <Link href="/feed" className="flex-1 sm:flex-none px-5 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold hover:bg-slate-800 transition text-center shadow-md">
-                Explorer le fil
+              <Link href="/messages" className="flex-1 sm:flex-none px-5 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold hover:bg-slate-800 transition text-center shadow-md">
+                Messagerie privée
               </Link>
               <Link href="/planner" className="flex-1 sm:flex-none px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl text-xs font-bold hover:bg-slate-50 transition text-center shadow-sm">
                 Mon planner
