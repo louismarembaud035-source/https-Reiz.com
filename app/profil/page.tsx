@@ -4,6 +4,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
+import { 
+  User, 
+  Mail, 
+  GraduationCap, 
+  Edit3, 
+  Trash2, 
+  Heart, 
+  FileText, 
+  LogOut, 
+  Camera, 
+  Sparkles, 
+  Flame, 
+  Trophy, 
+  ArrowLeft,
+  CheckCircle2
+} from 'lucide-react';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -12,206 +28,294 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [favorites, setFavorites] = useState<any[]>([]);
-  const [myFiches, setMyFiches] = useState<any[]>([]);
-  const [speciality, setSpeciality] = useState('');
+  const [fiches, setFiches] = useState<any[]>([]);
+  const [specialty, setSpecialty] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'published' | 'favorites'>('published');
 
   useEffect(() => {
-    async function getUserData() {
+    async function init() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push('/auth');
         return;
       }
       setUser(session.user);
-
-      // 1. Récupérer les favoris
-      const { data: favs } = await supabase
-        .from('Favorites')
-        .select('fiche_id')
-        .eq('user_id', session.user.id);
-
-      if (favs && favs.length > 0) {
-        const ficheIds = favs.map(f => f.fiche_id);
-        const { data: fichesData } = await supabase
-          .from('Fiches')
-          .select('*')
-          .in('id', ficheIds);
-        setFavorites(fichesData || []);
+      if (session.user.user_metadata?.specialty) {
+        setSpecialty(session.user.user_metadata.specialty);
+      }
+      if (session.user.user_metadata?.avatar_url) {
+        setAvatarUrl(session.user.user_metadata.avatar_url);
       }
 
-      // 2. Récupérer les fiches publiées par l'utilisateur
-      const { data: userFiches } = await supabase
-        .from('Fiches')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('created_at', { ascending: false });
-
-      setMyFiches(userFiches || []);
-
-      // 3. Récupérer le profil (spécialité)
-      const { data: profileData } = await supabase
-        .from('Profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profileData) {
-        setSpeciality(profileData.speciality || '');
-      }
-
+      fetchUserFiches(session.user.id, session.user.email);
       setLoading(false);
     }
-    getUserData();
+    init();
   }, [router]);
 
-  const handleSaveSpeciality = async (e: React.FormEvent) => {
+  async function fetchUserFiches(userId: string, email: string) {
+    const { data, error } = await supabase
+      .from('Fiches')
+      .select('*')
+      .or(`user_id.eq.${userId},author.eq.${email}`);
+    
+    if (!error && data) {
+      setFiches(data);
+    }
+  }
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
-
-    const { error } = await supabase
-      .from('Profiles')
-      .upsert({ id: user.id, email: user.email, speciality });
-
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({
+      data: { specialty, avatar_url: avatarUrl }
+    });
+    setSaving(false);
     if (error) {
-      console.error('Erreur mise à jour spécialité :', error);
-      alert('Erreur lors de la mise à jour de la spécialité.');
+      alert('Erreur lors de la mise à jour du profil.');
     } else {
-      alert('✨ Spécialité mise à jour avec succès !');
+      alert('Profil mis à jour avec succès !');
     }
   };
 
   const handleDeleteFiche = async (ficheId: string) => {
-    if (!confirm('Es-tu sûr de vouloir supprimer cette fiche ?')) return;
-
-    const { error } = await supabase
-      .from('Fiches')
-      .delete()
-      .eq('id', ficheId);
-
-    if (error) {
-      console.error('Erreur suppression :', error);
-      alert('Erreur lors de la suppression.');
-    } else {
-      setMyFiches(prev => prev.filter(f => f.id !== ficheId));
+    if (!confirm('Voulez-vous vraiment supprimer cette fiche ?')) return;
+    const { error } = await supabase.from('Fiches').delete().eq('id', ficheId);
+    if (!error) {
+      setFiches(prev => prev.filter(f => f.id !== ficheId));
     }
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
+    router.push('/auth');
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F9FAFB] text-gray-500 font-sans">
-        Chargement du profil...
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFC] text-slate-500 font-sans">
+        Chargement de ton profil...
       </div>
     );
   }
 
+  const totalPoints = fiches.length * 100;
+
   return (
-    <main className="min-h-screen bg-[#F9FAFB] text-gray-900 font-sans p-6 sm:p-12">
-      <div className="max-w-xl mx-auto space-y-6">
-        {/* Infos Profil & Déconnexion */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-[#2B4C7E]">Mon Profil</h1>
-            <Link href="/" className="text-sm font-medium text-gray-500 hover:text-gray-900">
-              Accueil
-            </Link>
+    <main className="min-h-screen bg-[#FAFAFC] text-slate-900 font-sans p-6 sm:p-12 relative overflow-hidden">
+      
+      {/* Ambient Glow */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+      
+      <div className="max-w-4xl mx-auto space-y-8">
+        
+        {/* Top Navigation Bar */}
+        <div className="flex justify-between items-center bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md">
+              R
+            </div>
+            <span className="font-extrabold text-slate-900 tracking-tight">Mon Profil Étudiant</span>
+          </div>
+          <Link href="/" className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition flex items-center gap-1.5">
+            <ArrowLeft className="w-3.5 h-3.5" /> Accueil
+          </Link>
+        </div>
+
+        {/* Social Header Card (Banner + Avatar + Stats) */}
+        <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl overflow-hidden shadow-sm">
+          
+          {/* Cover Banner */}
+          <div className="h-36 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 relative overflow-hidden">
+            <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
           </div>
 
-          <div className="space-y-6">
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-xl">
-              <p className="text-xs font-semibold text-[#2B4C7E] uppercase tracking-wider mb-1">E-mail connecté</p>
-              <p className="text-gray-800 font-medium text-sm">{user?.email}</p>
+          {/* Profile Info Section */}
+          <div className="px-6 sm:px-10 pb-8 pt-0 relative">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end -mt-14 mb-6 gap-4">
+              
+              {/* Avatar */}
+              <div className="relative">
+                <div className="w-28 h-28 rounded-3xl bg-white border-4 border-white shadow-xl overflow-hidden flex items-center justify-center bg-gradient-to-tr from-blue-100 to-indigo-100 text-blue-700 text-3xl font-black">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    user?.email?.[0].toUpperCase()
+                  )}
+                </div>
+                <span className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 border-2 border-white rounded-full"></span>
+              </div>
+
+              {/* Action Logout */}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={handleLogout}
+                  className="px-4 py-2.5 bg-red-50 text-red-600 rounded-2xl text-xs font-bold hover:bg-red-100 transition flex items-center gap-1.5 border border-red-200/60 shadow-sm"
+                >
+                  <LogOut className="w-4 h-4" /> Se déconnecter
+                </button>
+              </div>
+
             </div>
 
-            {/* Formulaire Spécialité / Filière */}
-            <form onSubmit={handleSaveSpeciality} className="space-y-3 pt-4 border-t border-gray-100">
-              <h3 className="font-semibold text-gray-800 text-sm">Ma Spécialité / Filière</h3>
-              <p className="text-xs text-gray-500">Affiche ta promotion pour que les autres membres te retrouvent dans l'annuaire.</p>
-              <input
-                type="text"
-                placeholder="ex: L2 Mathématiques ou Master 1 Droit"
-                value={speciality}
-                onChange={(e) => setSpeciality(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-[#2B4C7E] focus:outline-none"
-              />
+            <div className="space-y-4">
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                  {user?.email?.split('@')[0]}
+                </h1>
+                <p className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 mt-0.5">
+                  <Mail className="w-3.5 h-3.5" /> {user?.email}
+                </p>
+                {specialty && (
+                  <span className="inline-block mt-2 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full border border-blue-100">
+                    🎓 {specialty}
+                  </span>
+                )}
+              </div>
+
+              {/* Stats Badges (Social Style) */}
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-center">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Fiches Publiées</span>
+                  <span className="text-xl font-black text-slate-900 mt-1 block">{fiches.length}</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-center">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Points Reiz</span>
+                  <span className="text-xl font-black text-blue-600 mt-1 block">{totalPoints} pts</span>
+                </div>
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 text-center">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Série Active</span>
+                  <span className="text-xl font-black text-orange-500 mt-1 block">🔥 Actif</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Edit Profile Settings Form */}
+        <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-blue-600" />
+            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">Personnalisation du profil</h3>
+          </div>
+
+          <form onSubmit={handleUpdateProfile} className="space-y-4">
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Spécialité / Filière</label>
+                <div className="relative">
+                  <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    placeholder="ex: L2 Mathématiques ou Master 1 Droit"
+                    value={specialty}
+                    onChange={(e) => setSpecialty(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">URL de l'avatar (Photo)</label>
+                <div className="relative">
+                  <Camera className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="url"
+                    placeholder="https://exemple.com/mon-image.jpg"
+                    value={avatarUrl}
+                    onChange={(e) => setAvatarUrl(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="px-4 py-2 bg-[#2B4C7E] text-white rounded-xl text-xs font-semibold hover:bg-[#20375E] transition shadow-sm"
+                disabled={saving}
+                className="px-6 py-3 bg-slate-900 text-white rounded-2xl text-xs font-bold hover:bg-slate-800 transition shadow-md flex items-center gap-2"
               >
-                Enregistrer ma spécialité
-              </button>
-            </form>
-
-            <div className="border-t border-gray-100 pt-6">
-              <h3 className="font-semibold text-gray-800 mb-2 text-sm">Paramètres du compte</h3>
-              <p className="text-xs text-gray-500 mb-4">Gère ta session et déconnecte-toi de ton compte Reiz en toute sécurité.</p>
-              <button
-                onClick={handleLogout}
-                className="w-full py-3 font-medium text-white bg-red-600 rounded-xl shadow-sm hover:bg-red-700 transition text-sm"
-              >
-                Se déconnecter
+                {saving ? 'Enregistrement...' : <><CheckCircle2 className="w-4 h-4 text-emerald-400" /> Enregistrer les modifications</>}
               </button>
             </div>
+          </form>
+        </div>
+
+        {/* Content Tabs (Fiches Publiées / Favoris) */}
+        <div className="bg-white/90 backdrop-blur-sm border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          
+          {/* Tabs Switcher */}
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-4">
+            <button
+              onClick={() => setActiveTab('published')}
+              className={`px-4 py-2 rounded-2xl text-xs font-extrabold transition ${
+                activeTab === 'published' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Mes fiches publiées ({fiches.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('favorites')}
+              className={`px-4 py-2 rounded-2xl text-xs font-extrabold transition ${
+                activeTab === 'favorites' 
+                  ? 'bg-blue-600 text-white shadow-sm' 
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              Mes fiches favorites (0)
+            </button>
           </div>
-        </div>
 
-        {/* Mes Fiches Publiées */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-          <h3 className="font-bold text-lg text-[#2B4C7E] mb-4">Mes fiches publiées ({myFiches.length})</h3>
-          {myFiches.length === 0 ? (
-            <p className="text-sm text-gray-500">Tu n'as publié aucune fiche pour le moment.</p>
-          ) : (
-            <div className="space-y-3">
-              {myFiches.map((fiche) => (
-                <div key={fiche.id} className="p-4 border border-gray-100 rounded-xl bg-gray-50 flex flex-col gap-3">
-                  <div>
-                    <Link href={`/fiches/${fiche.id}`} className="font-semibold text-gray-900 text-sm hover:text-[#2B4C7E] transition block mb-1">
-                      {fiche.title}
-                    </Link>
-                    <p className="text-xs font-medium text-[#2B4C7E]">{fiche.subject} • {fiche.level}</p>
-                  </div>
-                  <div className="flex gap-2 pt-2 border-t border-gray-200/60">
-                    <Link
-                      href={`/fiches/${fiche.id}/edit`}
-                      className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-100 transition shadow-sm"
-                    >
-                      ✏️ Modifier
-                    </Link>
-                    <button
-                      onClick={() => handleDeleteFiche(fiche.id)}
-                      className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition"
-                    >
-                      🗑️ Supprimer
-                    </button>
-                  </div>
+          {/* Tab Content */}
+          {activeTab === 'published' ? (
+            <div className="space-y-4">
+              {fiches.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 text-xs">
+                  Tu n'as publié aucune fiche pour le moment.
                 </div>
-              ))}
+              ) : (
+                fiches.map((fiche) => (
+                  <div key={fiche.id} className="p-5 border border-slate-200/80 rounded-2xl bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-extrabold rounded-full border border-blue-100">
+                          {fiche.subject} • {fiche.level}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm text-slate-900">{fiche.title}</h4>
+                      <p className="text-xs text-slate-500 line-clamp-1">{fiche.description}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Link href={`/fiches/${fiche.id}`} className="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-50 transition shadow-sm">
+                        Voir
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteFiche(fiche.id)}
+                        className="px-3 py-1.5 bg-red-50 text-red-600 rounded-xl text-xs font-bold hover:bg-red-100 transition border border-red-200/60"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-400 text-xs">
+              Tu n'as encore ajouté aucune fiche en favori. Explore le fil d'actualité pour en ajouter !
             </div>
           )}
+
         </div>
 
-        {/* Mes Fiches Favorites */}
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-          <h3 className="font-bold text-lg text-[#2B4C7E] mb-4">Mes fiches favorites ({favorites.length})</h3>
-          {favorites.length === 0 ? (
-            <p className="text-sm text-gray-500">Tu n'as encore ajouté aucune fiche en favori.</p>
-          ) : (
-            <div className="space-y-3">
-              {favorites.map((fiche) => (
-                <Link key={fiche.id} href={`/fiches/${fiche.id}`} className="block p-4 border border-gray-100 rounded-xl hover:border-[#2B4C7E] transition bg-gray-50">
-                  <h4 className="font-semibold text-gray-900 text-sm mb-1">{fiche.title}</h4>
-                  <p className="text-xs font-medium text-[#2B4C7E]">{fiche.subject} • {fiche.level}</p>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </main>
   );
