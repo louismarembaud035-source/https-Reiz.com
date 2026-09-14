@@ -66,11 +66,27 @@ export default function Home() {
       {/* Sidebar App (Desktop) */}
       <aside className="w-full md:w-64 bg-white/80 backdrop-blur-md border-r border-slate-200/60 p-6 flex flex-col justify-between hidden md:flex shrink-0 sticky top-0 h-screen">
         <div className="space-y-8">
-          <div className="flex items-center gap-3 px-2">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/25">
-              R
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-blue-500/25">
+                R
+              </div>
+              <span className="font-extrabold tracking-tight text-slate-900 text-lg">Reiz</span>
             </div>
-            <span className="font-extrabold tracking-tight text-slate-900 text-lg">Reiz</span>
+
+            {/* Cloche de notification juste à droite du logo Reiz */}
+            <Link 
+              href="/notifications" 
+              className="relative p-2.5 rounded-2xl bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition group"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-black rounded-full flex items-center justify-center shadow-sm">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
           </div>
 
           <nav className="space-y-1.5">
@@ -143,11 +159,18 @@ export default function Home() {
             <span className="font-extrabold text-slate-900 tracking-tight">Reiz</span>
           </div>
           <div className="flex items-center gap-3">
+            <Link href="/notifications" className="relative p-2 rounded-xl bg-slate-100 text-slate-700">
+              <Bell className="w-4 h-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-blue-600 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
+            </Link>
             <Link href="/messages" className="text-xs font-semibold text-blue-600">Messages</Link>
             <Link href="/upload" className="px-3 py-1.5 bg-blue-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 shadow-sm">
               <Plus className="w-3.5 h-3.5" /> Fiche
             </Link>
-            <Link href="/profil" className="text-xs font-semibold text-slate-600">Profil</Link>
           </div>
         </header>
 
